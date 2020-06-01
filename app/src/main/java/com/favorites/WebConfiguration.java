@@ -10,9 +10,9 @@ import com.favorites.comm.filter.SecurityFilter;
 public class WebConfiguration  {
 	
     @Bean
-    public FilterRegistrationBean filterRegistration() {
+    public FilterRegistrationBean<SecurityFilter> filterRegistration() {
 
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+        FilterRegistrationBean<SecurityFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new SecurityFilter());
         registration.addUrlPatterns("/*");
         registration.addInitParameter("paramName", "paramValue");

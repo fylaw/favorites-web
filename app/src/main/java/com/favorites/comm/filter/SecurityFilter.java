@@ -16,7 +16,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class SecurityFilter implements Filter {
 
@@ -43,86 +45,80 @@ public class SecurityFilter implements Filter {
 		// TODO Auto-generated method stub
 		HttpServletRequest request = (HttpServletRequest) srequest;
 		String uri = request.getRequestURI();
-		if (request.getSession().getAttribute(Const.LOGIN_SESSION_KEY) == null) {
-			Cookie[] cookies = request.getCookies();
-			if (containsSuffix(uri)  || GreenUrlSet.contains(uri) || containsKey(uri)) {
-				logger.debug("don't check  url , " + request.getRequestURI());
+		
+		if (containsSuffix(uri)  || GreenUrlSet.contains(uri) || containsKey(uri)) {
+			logger.debug("don't check  url , " + request.getRequestURI());
+			filterChain.doFilter(srequest, sresponse);
+			return;
+		}
+		
+		if (request.getSession().getAttribute(Const.LOGIN_SESSION_KEY) != null) {
+			filterChain.doFilter(srequest, sresponse);
+			return;
+		}
+		
+		Cookie[] cookies = request.getCookies();
+		if(cookies == null) {
+			//跳转到登陆页面
+			String referer = this.getRef(request);
+			logger.debug("security filter, deney, " + request.getRequestURI());
+			String html = "";
+			if(referer.contains("/collect?") || referer.contains("/lookAround")){
+				html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
+			}else{
+				html = "<script type=\"text/javascript\">window.location.href=\"_BP_index\"</script>";
+			}
+			html = html.replace("_BP_", Const.BASE_PATH);
+			sresponse.getWriter().write(html);
+			//	HttpServletResponse response = (HttpServletResponse) sresponse;
+			//response.sendRedirect("/");
+			
+			return;
+		}
+		
+		Optional<Cookie> cookieValue = Stream.of(cookies).filter(e -> e.getName().equals(Const.LOGIN_SESSION_KEY)).findAny();
+		if (!cookieValue.isPresent() || StringUtils.isBlank(cookieValue.get().getValue())) {
+			//跳转到登陆页面
+			String referer = this.getRef(request);
+			logger.debug("security filter, deney, " + request.getRequestURI());
+			String html = "";
+			if(referer.contains("/collect?") || referer.contains("/lookAround")){
+				html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
+			}else{
+				html = "<script type=\"text/javascript\">window.location.href=\"_BP_index\"</script>";
+			}
+			html = html.replace("_BP_", Const.BASE_PATH);
+			sresponse.getWriter().write(html);
+			
+			return;
+		}
+		
+		String userIdValue = getUserId(cookieValue.get().getValue());
+		Long userId = 0l;
+		if (userRepository == null) {
+			BeanFactory factory = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());
+			userRepository = (UserRepository) factory.getBean("userRepository");
+		}
+		if(StringUtils.isNotBlank(userIdValue)){
+			userId = Long.parseLong(userIdValue);
+		}
+		User user = userRepository.findById((long)userId);
+		String html = "";
+		if(null == user){
+			html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
+		}else{
+			logger.info("userId :" + user.getId());
+			request.getSession().setAttribute(Const.LOGIN_SESSION_KEY, user);
+			String referer = this.getRef(request);
+			if(referer.indexOf("/collect?") >= 0 || referer.indexOf("/lookAround") >= 0){
 				filterChain.doFilter(srequest, sresponse);
 				return;
-			}else if (cookies!=null) {
-				boolean flag = true;
-				for (int i = 0; i < cookies.length; i++) {
-					Cookie cookie = cookies[i];
-					if (cookie.getName().equals(Const.LOGIN_SESSION_KEY)) {
-						if(StringUtils.isNotBlank(cookie.getValue())){
-							flag = false;
-						}else{
-							break;
-						}
-						String value = getUserId(cookie.getValue());
-						Long userId = 0l;
-						if (userRepository == null) {
-							BeanFactory factory = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());
-							userRepository = (UserRepository) factory.getBean("userRepository");
-						}
-						if(StringUtils.isNotBlank(value)){
-							userId = Long.parseLong(value);
-						}
-						User user = userRepository.findById((long)userId);
-						String html = "";
-						if(null == user){
-							html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
-						}else{
-							logger.info("userId :" + user.getId());
-							request.getSession().setAttribute(Const.LOGIN_SESSION_KEY, user);
-							String referer = this.getRef(request);
-							if(referer.indexOf("/collect?") >= 0 || referer.indexOf("/lookAround") >= 0){
-								filterChain.doFilter(srequest, sresponse);
-								return;
-							}else{
-								html = "<script type=\"text/javascript\">window.location.href=\"_BP_\"</script>";
-							}
-						}
-						html = html.replace("_BP_", Const.BASE_PATH);
-						sresponse.getWriter().write(html);
-						/**
-						 * HttpServletResponse response = (HttpServletResponse) sresponse;
-						 response.sendRedirect("/");
-						 */
-					}
-				}
-				if(flag){
-					//跳转到登陆页面
-					String referer = this.getRef(request);
-					logger.debug("security filter, deney, " + request.getRequestURI());
-					String html = "";
-					if(referer.contains("/collect?") || referer.contains("/lookAround")){
-						html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
-					}else{
-						html = "<script type=\"text/javascript\">window.location.href=\"_BP_index\"</script>";
-					}
-					html = html.replace("_BP_", Const.BASE_PATH);
-					sresponse.getWriter().write(html);
-				}
 			}else{
-				//跳转到登陆页面
-				String referer = this.getRef(request);
-				logger.debug("security filter, deney, " + request.getRequestURI());
-				String html = "";
-				if(referer.contains("/collect?") || referer.contains("/lookAround")){
-					html = "<script type=\"text/javascript\">window.location.href=\"_BP_login\"</script>";
-				}else{
-					html = "<script type=\"text/javascript\">window.location.href=\"_BP_index\"</script>";
-				}
-				html = html.replace("_BP_", Const.BASE_PATH);
-				sresponse.getWriter().write(html);
-				//	HttpServletResponse response = (HttpServletResponse) sresponse;
-				//response.sendRedirect("/");
-
+				html = "<script type=\"text/javascript\">window.location.href=\"_BP_\"</script>";
 			}
-		}else{
-			filterChain.doFilter(srequest, sresponse);
 		}
+		html = html.replace("_BP_", Const.BASE_PATH);
+		sresponse.getWriter().write(html);
 	}
 
 
