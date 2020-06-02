@@ -42,9 +42,45 @@
                <span th:if="${otherPeople != null}" class="title-small ml-sm mr-sm" th:text="'('+${favorites.publicCount}+')'">(8)</span>
                <span th:if="${type == 'garbage'}" th:text="回收站"></span>
                <span th:if="${otherPeople == null and type != 'garbage'}" data-toggle="modal" data-target="#modal-changeFavName" class="title-small clickable icon-pencil mr-sm"></span>
-               <div class="pull-right" th:if="${otherPeople == null and type != 'garbage'}">
-                  <span class="title-small icon-folder-alt mr-sm"></span>
-                  <span data-toggle="modal" data-target="#modal-removeFav" class="title-small clickable">删除</span>
+               <div class="pull-right item-trash-menu" th:if="${otherPeople == null and type != 'garbage'}">
+               		<div class="menu-item">
+						<div class="pull-right dropdown dropdown-list">
+                                          <a href="#" data-toggle="dropdown" class="sharing-more-button" aria-expanded="true">
+                                             <span class="fa fa-angle-down"></span>
+                                          列表模式</a>
+                                          <ul class="dropdown-menu animated bounceIn">
+                                             <li>
+                                                <div class="list-group">
+                                                   <a href="javascript:void(0);" class="list-group-item">
+                                                      <div class="media-box">
+                                                         <div class="pull-left">
+                                                            <em class="fa fa-pencil-square-o fa-lg fa-fw text-info"></em>
+                                                         </div>
+                                                         <div class="media-box-body clearfix">
+                                                            <p class="m0">列表模式</p>
+                                                         </div>
+                                                      </div>
+                                                   </a>
+
+                                                   <a href="javascript:void(0);" class="list-group-item">
+                                                      <div class="media-box">
+                                                         <div class="pull-left">
+                                                            <em class="fa fa-trash fa-lg fa-fw text-danger"></em>
+                                                         </div>
+                                                         <div class="media-box-body clearfix">
+                                                            <p class="m0">卡片模式</p>
+                                                         </div>
+                                                      </div>
+                                                   </a>
+                                                </div>
+                                             </li>
+                                          </ul>
+                                       </div>
+	                </div>  
+	                <div class="menu-item">            
+						<span class="title-small icon-folder-alt mr-sm"></span>
+	                	<span data-toggle="modal" data-target="#modal-removeFav" class="title-small clickable">删除</span>
+	                </div>
                </div>
             </h3>
 
@@ -72,8 +108,38 @@
                         <div class="timeline-panel">
                            <div class="popover right">
                               <div class="arrow"></div>
-                              <div class="popover-content">
-                                 <div class="table-grid">
+                              <div class="popover-content list-item">
+                              
+                                 <div class="media resource-card-thumbnail item-left">
+                                    <a  th:href="@{${collect.url}}" th:onclick="'saveLookRecord(' + ${collect.id} + ');'" class="pull-left" target="_blank">
+                                       <div class="media-object resource-card-image"  th:style="'background-image:url(' + @{(${collect.logoUrl}=='' ? '/img/favicon.png' : ${collect.logoUrl})} + ')'" ></div>
+                                    </a>
+
+                                    <div class="website-content">
+                                    	<div class="title" title=""><a target="_blank" th:onclick="'saveLookRecord(' + ${collect.id} + ');'" th:href="@{${collect.url}}" th:text="${collect.title}">title</a></div>
+                                    	<div class="des" th:text="${collect.description}"></div>
+                                    	<div class="tag-box" ></div>
+                                    </div>
+                                 </div>
+                                 
+                                 <div class="item-right">
+                                 <div class="m0 item-part item-url">
+                                 	<a target="_blank" th:href="@{${collect.url}}" th:text="${#strings.substringBefore(#strings.substringAfter(collect.url, '://'),'/')}">title</a>
+                                 </div>
+                                 
+                                 <div class="m0 item-part item-time">
+                                 	<small th:if="${type != 'explore'}" class="ml-sm text-muted" th:text="${'收藏于:' + collect.collectTime}">6天前  </small>
+                                 </div>
+                                 
+                                  	<div class="m0 item-part item-favor">
+                                  		<a href="javascript:void(0);" class="normal-color-a ng-binding"   th:text="${collect.favoriteName}" th:onclick="'locationUrl(\'/standard/' + ${collect.favoritesId} + '/'+${collect.userId}+'\',\''+ ${collect.favoritesId} + '\');'" >文件加名称</a>
+									</div>          
+									
+									<div class="m0 item-part item-remark" th:text="${collect.remark}"></div>
+
+                             
+                              
+                                 <div class="table-grid item-part item-op">
                                     <div class="col">
                                        <div class="pull-right dropdown dropdown-list">
                                           <a href="#" data-toggle="dropdown" class="sharing-more-button" th:if="${userId == collect.userId}" >
@@ -123,36 +189,19 @@
                                           <a th:if="${userId == collect.userId}" th:id="'public' + ${collect.id}"  class="deco-none"  title="设为公开"  href="javascript:void(0);"  th:style="'display:' + @{(${collect.type}=='PUBLIC' ? 'none' : 'inline-block')} + ''"  th:onclick="'changePrivacy(' + ${collect.id} + ',\'PUBLIC\');'">
                                              <span class="fa fa-lock text-warning"></span>
                                           </a>
-                                          <small th:if="${type != 'explore'}" class="ml-sm text-muted" th:text="${collect.collectTime}">6天前  </small>
                                        </div>
                                     </div>
                                  </div>
 
-                                  <div class="m0" th:text="${collect.remark}"></div>
-                                 <div class="media resource-card-thumbnail">
-                                    <a  th:href="@{${collect.url}}" th:onclick="'saveLookRecord(' + ${collect.id} + ');'" class="pull-left" target="_blank">
-                                       <div class="media-object resource-card-image"  th:style="'background-image:url(' + @{(${collect.logoUrl}=='' ? '/img/favicon.png' : ${collect.logoUrl})} + ')'" ></div>
-                                    </a>
-
-                                    <div class="media-body">
-                                       <h4 class="visible-xs media-heading resource-card-title-xs">
-                                          <a target="_blank" th:onclick="'saveLookRecord(' + ${collect.id} + ');'" th:href="@{${collect.url}}" th:text="${collect.title}">title</a>
-                                       </h4>
-
-                                       <h3 class="hidden-xs media-heading resource-card-title">
-                                          <a target="_blank" th:onclick="'saveLookRecord(' + ${collect.id} + ');'" th:href="@{${collect.url}}" th:text="${collect.title}">title</a>
-                                       </h3>
-
-                                       <div class="hidden-xs resource-card-content">
-                                          <p  th:text="${collect.description}">description</p>
-                                       </div>
-                                    </div>
+                           
                                  </div>
+                                 
 
+
+
+								<!-- 
                                  <div class="m0">
-
                                     <span class="icon-folder mr-sm"></span>
-                                    <a href="javascript:void(0);" class="normal-color-a ng-binding"   th:text="${collect.favoriteName}" th:onclick="'locationUrl(\'/standard/' + ${collect.favoritesId} + '/'+${collect.userId}+'\',\''+ ${collect.favoritesId} + '\');'" >文件加名称</a>
                                     <div class="pull-right hidden-xxs">
                                         <small>
                                           <a th:id="'like' + ${collect.id}"  class="sharing-action-button" th:style="'display:' + @{(${collect.Praise} ? 'none' : 'inline-block')} + ''"    th:onclick="'changeLike(' + ${collect.id} + ');'">
@@ -187,7 +236,9 @@
                                        </small>
                                     </div>
                                  </div>
-
+ 								-->
+ 								
+								<!-- 
                                  <div class="collapse" th:id="'collapse' + ${collect.id}">
                                     <comments th:id="'commentList' + ${collect.id}"></comments>
                                     <div class="media p0" th:id="'comment' + ${collect.id}">
@@ -203,6 +254,8 @@
                                        </div>
                                     </div>
                                  </div>
+                                  -->
+                                 
                               </div>
                            </div>
                         </div>

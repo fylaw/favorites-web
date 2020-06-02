@@ -1,0 +1,39 @@
+{
+   "background": {
+      "scripts": [ "js/axios.min.js", "js/background.js" ]
+   },
+   "browser_action": {
+      "default_icon": "img/logo.png",
+      "default_title": "Pinbox"
+   },
+   "commands": {
+      "_execute_browser_action": {
+         "suggested_key": {
+            "chromeos": "Ctrl+Shift+S",
+            "linux": "Ctrl+Shift+S",
+            "mac": "Command+Shift+S",
+            "windows": "Ctrl+Shift+S"
+         }
+      }
+   },
+   "content_scripts": [ {
+      "css": [ "css/content.css" ],
+      "js": [ "js/keyCodeMap.js", "js/content.js" ],
+      "matches": [ "*://*/*" ]
+   } ],
+   "description": "您的专属网络收藏夹，将文章、视频或喜欢的任何内容一键保存到 Pinbox, 随时随地收藏互联网",
+   "homepage_url": "https://microsoftedge.microsoft.com/addons/detail/lhikococflpkoiaigndpmmmkeohibeai",
+   "icons": {
+      "128": "img/logo_128.png",
+      "16": "img/logo_16.png",
+      "48": "img/logo.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7NT9a/3xiqNrKEPeHRg6X4Maa7xN/2HeY1BPrgxKIAaeK4yErRY+49rwAcHVGGHs/3RH94F8qsTQiUhVubWlXBqB1xzu0zNvbI9tdO8UD2GnSs5YWLtnnAhBtW/cuNPMyMALWmSMCCE7qpCnveFyfsAeM/f9voMtrEUJPb6sdTtpJWix89SGWGQ3qrutM0npiaGtm/bVqZrWWqPzR00nT56QcqwK1k+NfCX/nTXTA5EIz4fKaSPg4J6yEhKM3vTStxspQTcw8D9ApVY3eDZRbXL7Q6yBtMGZtUUapjqM9qj+g1XTrmnQyFnyeb6r8nfZbv5Rp5IWXJV4UjRpGfcZVQIDAQAB",
+   "manifest_version": 2,
+   "name": "Pinbox - 跨平台收藏",
+   "options_page": "options/index.html",
+   "permissions": [ "contextMenus", "bookmarks", "tabs", "cookies", "storage", "http://*/*", "https://*/*" ],
+   "update_url": "https://edge.microsoft.com/extensionwebstorebase/v1/crx",
+   "version": "3.1.0",
+   "web_accessible_resources": [ "img/logo.png", "img/logo.svg", "save.html", "js/build.js" ]
+}
