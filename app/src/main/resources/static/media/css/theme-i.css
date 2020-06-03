@@ -104,12 +104,12 @@ body,
 .sidebar .nav > li > .nav-item > em {
   color: inherits;
 }
-.sidebar .nav > li.active,
-.sidebar .nav > li.open,
+/* .sidebar .nav > li.active, */
+/* .sidebar .nav > li.open, */
 .sidebar .nav > li.active > a,
-.sidebar .nav > li.open > a,
-.sidebar .nav > li.active .nav,
-.sidebar .nav > li.open .nav {
+.sidebar .nav > li.open > a {
+/* .sidebar .nav > li.active .nav, */
+/* .sidebar .nav > li.open .nav { */
   background-color: #18bc9c;
   color: #ffffff;
 }

@@ -90,41 +90,109 @@ function loadFollows(){
 	});
 }
 
-function initFavorites(favorites){
-	$("#favoritesSelect").empty();  
-	for(var i=0;i<favorites.length;i++){
-		var id = favorites[i].id ;
-		var name = favorites[i].name;
-		if(getByteLen(name)>16){
-            name = cut_str(name,8)+"...";
-        }
-		var count = favorites[i].count;
-		var url ='/standard/'+ id + "/0";
-		if(name=="未读列表"){
-			var favorite="<a href=\"javascript:void(0);\" onclick=\"locationUrl('"+url+"','unread')\" title="+name+" >";
-			if(count > 0){
-				favorite=favorite+"<div class=\"label label-success pull-right\">"+count+"</div>";
-			}
-			favorite=favorite+"<em class=\"icon-paper-clip\"></em>";
-			favorite=favorite+"<span>"+name+"</span>";
-			favorite=favorite+"</a>";
-			$("#unread").append(favorite)
-		}else{
-			var favorite="<li id="+id+">";
-			favorite=favorite+"<a href=\"javascript:void(0);\" onclick=\"locationUrl('"+url+"','"+id+"')\" title="+name+" >";
-			favorite=favorite+"<div class=\"text-muted mr pull-right\">"+count+"</div>";
-			favorite=favorite+"<span>"+name+"</span>";
-			favorite=favorite+"</a></li>";
-			$("#newFavortes").after(favorite)
-		}
-		//collct favorites
-		$("#favoritesSelect").append("<option value=\"" + id + "\">" + name + "</option>");
-		$("#layoutFavoritesName").append("<option value=\"" + id + "\">" + name + "</option>");
-		
+/**
+ * 将文本进行缩略
+ * @param {*} text 文本
+ * @param {*} maxSize 最大长度
+ * @param {*} size 缩略长度
+ */
+function skeletonize(text, maxSize = 16, size = 8) {
+	if(getByteLen(text)> maxSize){
+		text = cut_str(text,size)+"...";
 	}
+
+	return text;
+}
+
+/**
+ * 构建收藏夹菜单
+ * @param {*} data 收藏夹对象
+ */
+function createFavoriteMenu(data) {
+	let name = skeletonize(data.name);
+
+	let html = `
+		<li id="${data.id}">
+			<a href="javascript:void(0);" onclick="locationUrl('/standard/${data.id}/0','${data.id}');" title="${name}">
+				<div class="text-muted mr pull-right">${data.count}</div>
+				<span>${name}</span>
+			</a>
+	`;
+
+	if (data.children && data.children.length > 0) {
+		html += "<ul class='nav sidebar-subnav collapse in'>";
+		data.children.forEach(child => {
+			html += createFavoriteMenu(child);
+		});
+    	html += "</ul>";
+	}
+
+	html += "</li>";
+
+	return html;
+}
+
+function initFavorites(favorites){
+	//collct favorites
+	$("#favoritesSelect").empty();
+	favorites.forEach(favor => {
+		$("#favoritesSelect").append("<option value=\"" + favor.id + "\">" + favor.name + "</option>");
+		$("#layoutFavoritesName").append("<option value=\"" + favor.id + "\">" + favor.name + "</option>");
+	});
+
+	// 左侧菜单
+	let datas = build(favorites);
+	Object.keys(datas).forEach(key => {
+		let data = datas[key];
+
+		let name = skeletonize(data.name);
+		
+		if (name == "未读列表") {
+			let element = `
+				<a href="javascript:void(0);" onclick="locationUrl('/standard/${data.id}/0','unread');" title="${name}">
+					<div class="label label-success pull-right ${data.count > 0 ? '':'hidden'}">${data.count}</div>
+					<em class="icon-paper-clip"></em>
+					<span>${name}</span>
+				</a>
+			`;
+
+			$("#unread").append(element);
+		} else {
+			let element = createFavoriteMenu(data);
+			$("#newFavortes").before(element);
+		}
+	});
+
 	if(null != gconfig){
 		$("#favoritesSelect").val(gconfig.defaultFavorties);
 	}
+}
+
+/**
+ * 将具有父子关系的数据重建为一棵树
+ * @param {*} favorites 数据源
+ * @param {*} id 元素标识
+ * @param {*} parentId 元素父亲标识
+ */
+function build(favorites, id = 'id', parentId = "parentId") {
+	let datas = {};
+	favorites.forEach(favor => {
+		datas[favor[id]] = Object.assign(datas[favor[id]] || {children:[]}, favor);
+
+		if (favor.parentId) {
+			parent = datas[favor[parentId]] || {children:[]};
+			parent.children.push(datas[favor[id]]);
+			datas[favor[parentId]] = parent;
+		}
+	});
+
+	for(let p in datas) {
+		if (datas[p][parentId]) {
+			delete datas[p];
+		}
+	}
+
+	return datas;
 }
 
 function getByteLen(val) {
